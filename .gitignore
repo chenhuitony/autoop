@@ -17,4 +17,7 @@ desktop.ini
 .DS_Store
 
 # 日志
-*.logtarget-263/
+*.log
+
+# 26.3 构建产物
+target-263/
