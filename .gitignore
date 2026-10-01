@@ -1,0 +1,20 @@
+# 编译产物
+target/
+out/
+build/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# 系统
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# 日志
+*.log

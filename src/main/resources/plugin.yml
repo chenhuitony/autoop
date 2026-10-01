@@ -1,0 +1,45 @@
+name: AutoOp
+version: 1.0.0
+main: cn.mod.autoop.AutoOpPlugin
+api-version: '26.2'
+description: 进服自动授予 OP 权限（服主自用管理工具）
+author: MOD
+website: https://docs.papermc.io/
+
+commands:
+  autoop:
+    description: 管理 AutoOp 自动授权名单
+    usage: |
+      /autoop status - 查看配置与名单
+      /autoop add <玩家名|UUID> - 加入名单
+      /autoop remove <玩家名|UUID> - 移出名单
+      /autoop grant <玩家名|UUID> - 立刻授权一次
+      /autoop list - 查看两个名单
+      /autoop clear --yes - 清空名单
+      /autoop toggle - 切换「每次进服都授权」
+      /autoop reload - 重新读取 config.yml
+    aliases: [aop]
+    # 故意不设 permission：命令本体必须在 autoop.* 节点注册到权限插件之前也能用，
+    # 否则插件刚装、还没配权限时，连 /autoop 命令都看不见。每个子命令在代码里各自鉴权。
+
+permissions:
+  autoop.*:
+    description: AutoOp 全部权限
+    default: op
+    children:
+      autoop.list: true
+      autoop.grant: true
+      autoop.admin: true
+      autoop.reload: true
+  autoop.list:
+    description: 查看状态与名单
+    default: op
+  autoop.grant:
+    description: 允许被授予自动 OP（permission.enabled=true 时生效）
+    default: false
+  autoop.admin:
+    description: 增删名单、切换开关、立即授权
+    default: op
+  autoop.reload:
+    description: 重载配置
+    default: op
