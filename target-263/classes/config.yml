@@ -1,0 +1,49 @@
+# ============================================================
+# AutoOp 配置文件
+# 修改后执行 /autoop reload，或重启服务器
+# ============================================================
+
+# 授予的 OP 权限等级，1-4。
+#   1 = 可绕过出生点保护
+#   2 = 可用大部分单机指令（/gamemode、/tp 等）+ 命令方块
+#   3 = 可用多人管理指令（/ban、/kick、/op 等）
+#   4 = 完整权限，等同原版 op 指令的默认结果
+# 说明：Bukkit 的 setOp(true) 本身写入 ops.json 时等级为 4；
+# 本项通过 /autoop 授权流程与文档提示服务端权限等级，不会降低已授予的等级。
+op-level: 4
+
+# false = 只在「首次」进服授权一次（默认、最安全）。
+# true  = 名单内玩家每次进服都重新确认 OP（服主手动 deop 会被顶回来）。
+grant-on-every-join: false
+
+# true = 你手动执行 /deop 之后，AutoOp 不会再把他顶回 OP（推荐保持 true）。
+respect-manual-deop: true
+
+# 进服后延迟多少 tick 再授权。默认 1，留出时间让 LuckPerms 等权限插件加载完玩家数据。
+delay-ticks: 1
+
+players:
+  # 推荐：直接写 UUID，精确匹配，与 online-mode 无关，玩家改名也不会失效。
+  # 获取方式：让玩家进一次服后执行 /autoop add <名字>，插件会按 UUID 写入；
+  # 或用 tools/gen-offline-uuid.py 为离线模式玩家算出 UUID。
+  # 支持带连字符或 32 位无连字符写法。
+  uuid:
+    # - "069a79f4-44e9-4726-a5be-fca90e38aaf5"
+  # 备选：按玩家名匹配。改了名字就失效；离线/正版混合环境下可能匹配不到。
+  name:
+    # - "YourName"
+
+permission:
+  # true  = 只有拥有 autoop.grant 权限的玩家才会被自动授权。
+  #         OP 及以上默认拥有（见 plugin.yml），普通玩家不会中招，
+  #         即使他的名字被误写进名单，也拿不到 OP。
+  # false = 跳过权限检查，名单命中就授权。请勿在公开服关闭此项。
+  enabled: true
+
+# OP 授权成功后的提示
+notify-console: true    # 控制台打印日志
+notify-player: false    # 给被授权的玩家发一条提示消息
+
+# 曾由本插件授予过 OP 的玩家记录（键为 UUID）。
+# 用于识别「服主手动 deop」，不要手动删除，否则手动 deop 会被下次进服覆盖。
+granted: {}
