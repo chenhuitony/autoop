@@ -88,11 +88,34 @@ if ($ServerDir -ne "") {
     # 真正的 org.bukkit.* API 在服务端 libraries\ 目录下的 140+ 个 jar 里。
     $libDir = Join-Path (Resolve-Path $ServerDir).Path "libraries"
     if (-not (Test-Path $libDir)) { Bad "服务端目录下没有 libraries\: $libDir"; exit 1 }
-    $jars = @(Get-ChildItem -Path $libDir -Recurse -Filter "*.jar" -ErrorAction SilentlyContinue |
-              Select-Object -ExpandProperty FullName)
-    if ($jars.Count -eq 0) { Bad "$libDir 下没有 jar"; exit 1 }
+    $all = @(Get-ChildItem -Path $libDir -Recurse -Filter "*.jar" -ErrorAction SilentlyContinue)
+    if ($all.Count -eq 0) { Bad "$libDir 下没有 jar"; exit 1 }
+
+    # Paper 26.3+ 的 libraries\ 里会同时存在多个 paper-api 版本
+    # (26.3.build.5-alpha ... 26.3.build.49-alpha ... 26.3.local-SNAPSHOT)。
+    # 全部拼进 -cp 会出现重复类, javac 可能取到旧版本的类。规则:
+    #   1) paper-api 只取一个: 优先 local-SNAPSHOT (服务端实际运行的那个),
+    #      否则取 build 号最大的;
+    #   2) 其它 jar (guava / adventure / gson ...) 全带上, 它们是传递依赖。
+    $apis = @($all | Where-Object { $_.Name -like "paper-api*.jar" })
+    $pick = $null
+    if ($apis.Count -gt 0) {
+        $pick = $apis | Where-Object { $_.FullName -like "*local-SNAPSHOT*" } | Select-Object -First 1
+        if (-not $pick) {
+            $pick = $apis |
+                Sort-Object { if ($_.Name -match "-([0-9]+)\.jar") { [int]$Matches[1] } else { -1 } } |
+                Select-Object -Last 1
+        }
+        if ($apis.Count -gt 1) {
+            Warn "libraries\ 下有 $($apis.Count) 个 paper-api, 只用: $($pick.Name)"
+        }
+    }
+    $apiName = "未找到"
+    if ($pick) { $apiName = $pick.Name }
+    $jars = @($all | Where-Object { $_.Name -notlike "paper-api*.jar" } | ForEach-Object { $_.FullName })
+    if ($pick) { $jars += $pick.FullName }
     $cp = $jars -join ";"
-    Ok "使用服务端 libraries\: $($jars.Count) 个 jar"
+    Ok "使用服务端 libraries\: $($jars.Count) 个 jar (paper-api: $apiName)"
 } elseif ($ServerJar -ne "") {
     if (-not (Test-Path $ServerJar)) { Bad "找不到服务端 jar: $ServerJar"; exit 1 }
     $cp = (Resolve-Path $ServerJar).Path
